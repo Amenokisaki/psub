@@ -2993,7 +2993,7 @@ var src_default = {
         } else {
           parsedObj = parseData(url2);
         }
-        if (/^(ssr?|vmess1?|trojan|vless|hysteria|hysteria2):\/\//.test(url2)) {
+        if (/^(ssr?|vmess1?|trojan|vless|hysteria|hysteria2|tuic):\/\//.test(url2)) {
           const newLink = replaceInUri(url2, replacements, false);
           if (newLink)
             replacedURIs.push(newLink);
@@ -3069,6 +3069,8 @@ function replaceInUri(link, replacements, isRecovery) {
       return replaceHysteria(link, replacements);
     case link.startsWith("hysteria2://"):
       return replaceHysteria2(link, replacements, isRecovery);  // 新增支持
+    case link.startsWith("tuic://"):
+      return replaceTuic(link, replacements, isRecovery);  // 新增支持
     default:
       return;
   }
@@ -3227,6 +3229,23 @@ function replaceHysteria2(link, replacements, isRecovery) {
     const randomUUID = generateRandomUUID();
     const randomDomain = generateRandomStr(10) + ".com";
     const regexMatch = link.match(/(hysteria2):\/\/(.*)@(.*?):/);
+    if (!regexMatch) {
+        return;
+    }
+    const [, , uuid, server] = regexMatch;
+    replacements[randomDomain] = server;
+    replacements[randomUUID] = uuid;
+    const regex = new RegExp(`${uuid}|${server}`, "g");
+    if (isRecovery) {
+        return link.replace(regex, (match) => cReplace(match, uuid, replacements[uuid], server, replacements[server]));
+    } else {
+        return link.replace(regex, (match) => cReplace(match, uuid, randomUUID, server, randomDomain));
+    }
+}
+function replaceTuic(link, replacements, isRecovery) {
+    const randomUUID = generateRandomUUID();
+    const randomDomain = generateRandomStr(10) + ".com";
+    const regexMatch = link.match(/(tuic):\/\/(.*)@(.*?):/);
     if (!regexMatch) {
         return;
     }
