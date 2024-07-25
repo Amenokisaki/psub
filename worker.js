@@ -3244,19 +3244,21 @@ function replaceHysteria2(link, replacements, isRecovery) {
 }
 function replaceTuic(link, replacements, isRecovery) {
     const randomUUID = generateRandomUUID();
+    const randomPassword = generateRandomUUID();
     const randomDomain = generateRandomStr(10) + ".com";
-    const regexMatch = link.match(/(tuic):\/\/(.*)@(.*?):/);
+    const regexMatch = link.match(/(tuic):\/\/(.*):(.*)@(.*?):/);
     if (!regexMatch) {
         return;
     }
-    const [, , uuid, server] = regexMatch;
+    const [, , uuid, password, server] = regexMatch;
     replacements[randomDomain] = server;
     replacements[randomUUID] = uuid;
-    const regex = new RegExp(`${uuid}|${server}`, "g");
+    replacements[randomPassword] = password;
+    const regex = new RegExp(`${uuid}|${password}|${server}`, "g");
     if (isRecovery) {
-        return link.replace(regex, (match) => cReplace(match, uuid, replacements[uuid], server, replacements[server]));
+        return link.replace(regex, (match) => cReplace(match, uuid, replacements[uuid], password, replacements[password], server, replacements[server]));
     } else {
-        return link.replace(regex, (match) => cReplace(match, uuid, randomUUID, server, randomDomain));
+        return link.replace(regex, (match) => cReplace(match, uuid, randomUUID, password, randomPassword, server, randomDomain));
     }
 }
 function replaceYAML(yamlObj, replacements) {
